@@ -1,12 +1,12 @@
-SLIC - simple lossless image codec
-----------------------------------
+SLIC - simple lossless imaging codec
+------------------------------------
 Copyright (c) 2022 BitBank Software, Inc.<br>
 Written by Larry Bank<br>
 bitbank@pobox.com<br>
 
 What is it?
 -----------
-An 'embedded-friendly' (aka Arduino) image compression format/codec the supports most common pixel types, is fast to compress, fast to decompress and easily adds useful compression to many projects that would otherwise be unable to use popular formats like JPEG/PNG/TIFF/WebP/etc<br>
+An 'embedded-friendly' (aka Arduino) image compression format/codec that supports most common pixel types, is fast to compress, fast to decompress and easily adds useful compression to many projects that would otherwise be unable to use popular formats like JPEG/PNG/TIFF/WebP/etc<br>
 
 What isn't it?
 --------------
