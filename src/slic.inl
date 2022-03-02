@@ -472,9 +472,10 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
 } /* slic_encode() */
 
 int slic_init_decode(const char *filename, SLICSTATE *pState, uint8_t *pData, int iDataSize, uint8_t *pPalette, SLIC_OPEN_CALLBACK *pfnOpen, SLIC_READ_CALLBACK *pfnRead) {
-    slic_header *pHdr;
+    slic_header hdr;
     int rc, i;
-    
+    uint8_t *s;
+
     if (pState == NULL) {
         return SLIC_INVALID_PARAM;
     }
@@ -492,20 +493,20 @@ int slic_init_decode(const char *filename, SLICSTATE *pState, uint8_t *pData, in
 
     if (pfnRead) {
         i = (*pfnRead)(&pState->file, pState->ucFileBuf, FILE_BUF_SIZE);
-        pHdr = (slic_header *)pState->ucFileBuf;
+        memcpy(&hdr, pState->ucFileBuf, SLIC_HEADER_SIZE);
         pState->pInPtr = &pState->ucFileBuf[SLIC_HEADER_SIZE];
         pState->pInEnd = &pState->ucFileBuf[i];
     } else { // memory to memory
-        pHdr = (slic_header *)pData;
+        memcpy(&hdr, pData, SLIC_HEADER_SIZE);
         pState->pInPtr = pData + SLIC_HEADER_SIZE;
         pState->pInEnd = &pData[iDataSize];
     }
-    if (pHdr->magic == SLIC_MAGIC) {
-        pState->width = pHdr->width;
-        pState->height = pHdr->height;
+    if (hdr.magic == SLIC_MAGIC) {
+        pState->width = hdr.width;
+        pState->height = hdr.height;
         pState->curr_pixel = pState->prev_pixel = 0xff000000;
-        pState->bpp = pHdr->bpp;
-        pState->colorspace = pHdr->colorspace;
+        pState->bpp = hdr.bpp;
+        pState->colorspace = hdr.colorspace;
         if (pState->bpp != 8 && pState->bpp != 16 && pState->bpp != 24 && pState->bpp != 32)
             return SLIC_BAD_FILE; // invalid bits per pixel
         if (pState->colorspace >= SLIC_COLORSPACE_COUNT)
@@ -523,6 +524,7 @@ int slic_init_decode(const char *filename, SLICSTATE *pState, uint8_t *pData, in
     }
     return SLIC_SUCCESS;
 } /* slic_init_decode() */
+
 //
 // Read more data from the data source
 // if none exists --> error
