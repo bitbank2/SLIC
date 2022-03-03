@@ -13,7 +13,6 @@ static SLIC slic;
 static SPILCD lcd;
 uint16_t usTemp[240];
 uint8_t ucImage[2048];
-
 #define TFT_CS 10
 #define TFT_DC 9
 #define TFT_RST 8
@@ -54,10 +53,8 @@ int CreateImage(void)
   spilcdWriteString(&lcd, 0,0,(char *)"SLIC encoding produced", 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
   sprintf(szTemp, "%d bytes of compressed data", slic.get_output_size());
   spilcdWriteString(&lcd, 0,10,szTemp, 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
-  spilcdWriteString(&lcd, 0,20,(char *)"(A ~25:1 compression ratio)", 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
-  spilcdWriteString(&lcd, 0,210,(char *)"This size can be reduced", 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
-  spilcdWriteString(&lcd, 0,220,(char *)"further by encoding longer", 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
-  spilcdWriteString(&lcd, 0,230,(char *)"runs of pixels per call", 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
+  sprintf(szTemp, "(A ~%d:1 compression ratio)", (128*128*2)/slic.get_output_size());
+  spilcdWriteString(&lcd, 0,20,szTemp, 0xffe0,0,FONT_8x8, DRAW_TO_LCD);
   return slic.get_output_size();
   } else {
     Serial.print("SLIC encoder returned error - ");
@@ -89,11 +86,12 @@ int rc, xoff, yoff;
 } /* ShowImage() */
 
 void setup() {
-int rc, iLen;
+int iLen;
   Serial.begin(115200);
+  Serial.println("Starting...");
   // init the LCD
   memset(&lcd, 0, sizeof(lcd));
-  rc = spilcdInit(&lcd, LCD_ST7789_240, FLAGS_NONE, 10000000, TFT_CS, TFT_DC, TFT_RST, TFT_LED, -1, TFT_MOSI, TFT_SCK);
+  spilcdInit(&lcd, LCD_ST7789_240, FLAGS_NONE, 10000000, TFT_CS, TFT_DC, TFT_RST, TFT_LED, -1, TFT_MOSI, TFT_SCK);
   spilcdFill(&lcd, 0, DRAW_TO_LCD);
   // Create a compressed image
   iLen = CreateImage();
