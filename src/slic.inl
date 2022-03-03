@@ -52,6 +52,7 @@ int slic_init_encode(const char *filename, SLICSTATE *pState, uint16_t iWidth, u
     }
     pState->run = 0;
     pState->bad_run = 0;
+    pState->extra_pixel = 0;
     pState->width = iWidth;
     pState->height = iHeight;
     pState->bpp = iBpp;
@@ -137,11 +138,16 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
         uint8_t *index8 = (uint8_t *)pState->index;
         px8 = (uint8_t)pState->prev_pixel;
         px8_prev = (uint8_t)pState->curr_pixel;
-        
+        if (pState->extra_pixel) {
+            pState->extra_pixel = 0;
+            px8_next = s[0];
+            goto restart_8bit; // try again
+        }
         while (s < pEnd) {
             if (d >= pDstEnd) {
                 if (pState->pfnWrite) {
                     d = dump_encoded_data(pState, d);
+                    bad_run = 0; // can't update bad_run count once written
                 } else {
                     return SLIC_ENCODE_OVERFLOW;
                 }
@@ -170,6 +176,13 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
                     *d++ = SLIC_OP_RUN8 | (run - 1);
                     run = 0;
                 }
+                if (s == pEnd && pState->iPixelCount != 0) {
+                    // We're out of input on this run, but still have more pixels before the image is finished. Stop here and let it test this pair of pixels on the next call
+                    pState->extra_pixel = 1;
+                    goto exit_8bit; // save state and leave
+                }
+// Entry point to retry compressing the last pixel as a pair with the current
+restart_8bit:
                 index_pos = SLIC_GRAY_HASH(px8);
                 index_next = SLIC_GRAY_HASH(px8_next);
                 if (index8[index_pos] == px8 && index8[index_next] == px8_next && s < pEnd) {
@@ -232,6 +245,7 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
             }
         }
         // save state
+exit_8bit:
         pState->curr_pixel = px8;
         pState->prev_pixel = px8_prev;
         pState->pOutPtr = d;
@@ -247,10 +261,16 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
         pEnd16 = (uint16_t *)pEnd;
         px16 = (uint16_t)pState->curr_pixel;
         px16_prev = (uint16_t)pState->prev_pixel;
+        if (pState->extra_pixel) {
+            pState->extra_pixel = 0;
+            px16_next = s16[0];
+            goto restart_rgb565; // try again
+        }
         while (s16 < pEnd16) {
             if (d >= pDstEnd) {
                 if (pState->pfnWrite) {
                     d = dump_encoded_data(pState, d);
+                    bad_run = 0; // can't update bad_run count once written
                 } else {
                     return SLIC_ENCODE_OVERFLOW;
                 }
@@ -279,6 +299,13 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
                     *d++ = SLIC_OP_RUN16 | (run - 1);
                     run = 0;
                 }
+                if (s16 == pEnd16 && pState->iPixelCount != 0) {
+                    // We're out of input on this run, but still have more pixels before the image is finished. Stop here and let it test this pair of pixels on the next call
+                    pState->extra_pixel = 1;
+                    goto exit_rgb565; // save state and leave
+                }
+// Entry point to retry compressing the last pixel as a pair with the current
+restart_rgb565:
                 index_pos = SLIC_RGB565_HASH(px16);
                 index_next = SLIC_RGB565_HASH(px16_next);
                 if (index16[index_pos] == px16 && index16[index_next] == px16_next && s16 < pEnd16) {
@@ -340,6 +367,7 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
             }
         }
         // save state
+exit_rgb565:
         pState->curr_pixel = px16;
         pState->prev_pixel = px16_prev;
         pState->pOutPtr = d;
@@ -354,6 +382,7 @@ int slic_encode(SLICSTATE *pState, uint8_t *s, int iPixelCount) {
             if (d >= pDstEnd) {
                 if (pState->pfnWrite) {
                     d = dump_encoded_data(pState, d);
+                    bad_run = 0; // can't update bad_run count once written
                 } else {
                     return SLIC_ENCODE_OVERFLOW;
                 }
