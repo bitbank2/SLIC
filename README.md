@@ -61,3 +61,5 @@ A4: Peruse the Wiki for info about the API, create some ".slc" files with the co
 <br>
 Q5: How can I easily create SLIC-compressed images from existing image files?<br>
 A5: The command line tool in the linux directory should build correctly on MacOS+Windows as well. Use it to convert Windows BMP files into .slc files.<br>
+Q6: How can I include SLIC const data in my code?<br>
+A6: Use my image_to_c tool (https://github.com/bitbank2/image_to_c) to create C arrays of binary data to compile into your code.<br>
