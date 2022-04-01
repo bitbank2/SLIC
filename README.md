@@ -1,16 +1,16 @@
 SLIC - simple lossless imaging codec
-------------------------------------
-Copyright (c) 2022 BitBank Software, Inc.<br>
-Written by Larry Bank<br>
-bitbank@pobox.com<br>
+====================================
+Copyright (c) 2022 BitBank Software, Inc.<br/>
+Written by Larry Bank<br/>
+bitbank@pobox.com<br/>
 
 What is it?
 -----------
-An 'embedded-friendly' (aka Arduino) image compression format/codec that supports most common pixel types, is fast to compress, fast to decompress and easily adds useful compression to many projects that would otherwise be unable to use popular formats like JPEG/PNG/TIFF/WebP/etc<br>
+An 'embedded-friendly' (aka Arduino) image compression format/codec that supports most common pixel types, is fast to compress, fast to decompress and easily adds useful compression to many projects that would otherwise be unable to use popular formats like JPEG/PNG/TIFF/WebP/etc
 
 What isn't it?
 --------------
-A perfect image codec that solves every problem and fills every need. As the name implies, it's a simple yet effective format that opens a few new doors.<br>
+A perfect image codec that solves every problem and fills every need. As the name implies, it's a simple yet effective format that opens a few new doors.
 
 Why did you write it?
 ---------------------
@@ -22,44 +22,43 @@ I started working with the QOI format and it gave me some good ideas as a starti
 
 What's special about it?
 ------------------------
-As with all of my recent projects, my aim is to make it fast, simple and easy to integrate. What's special is that it works so effectively on a wide range of images, doesn't require much RAM nor a file system and has a simple API accessible as C or C++. It's extremely easy to integrate into any project and doesn't take up much code space nor RAM.<br>
+As with all of my recent projects, my aim is to make it fast, simple and easy to integrate. What's special is that it works so effectively on a wide range of images, doesn't require much RAM nor a file system and has a simple API accessible as C or C++. It's extremely easy to integrate into any project and doesn't take up much code space nor RAM.
 
 Click the image below to see a Youtube video of it running on a 8Mhz ATMega328 (8-bit MCU w/2K RAM, 32K FLASH) decoding images to a 320x240 SPI LCD.
+
 [![SLIC running on ATMega328](https://img.youtube.com/vi/8YeGYrjqi5Y/0.jpg)](https://www.youtube.com/watch?v=8YeGYrjqi5Y)
 
-<br>
-Feature summary:<br>
-----------------<br>
-- Runs on any CPU/MCU with at least 1K of free RAM<br>
-- No external dependencies (including malloc/free)<br>
-- Allows memory to memory encode and decode<br>
-- Can work with files through callback functions you provide<br>
-- Extremely fast yet extremely effective at compressing many types of images<br>
-- Encode and decode an image by as few or as many pixels at a time as you like<br>
-- Supported Pixel types: 8-bit grayscale, 8-bit palette, 24/32-bit truecolor, and RGB565<br>
-- Arduino-style C++ library class with simple API<br>
-- Can by built as a straight C project as well<br>
-<br>
+Feature summary
+---------------
+- Runs on any CPU/MCU with at least 1K of free RAM
+- No external dependencies (including malloc/free)
+- Allows memory to memory encode and decode
+- Can work with files through callback functions you provide
+- Extremely fast yet extremely effective at compressing many types of images
+- Encode and decode an image by as few or as many pixels at a time as you like
+- Supported Pixel types: 8-bit grayscale, 8-bit palette, 24/32-bit truecolor, and RGB565
+- Arduino-style C++ library class with simple API
+- Can by built as a straight C project as well
 
-FAQ:<br>
-----<br>
+FAQ
+---
+Q0: Does it run on the Arduino Uno?
+A0: Yes! You can both encode and decode images on the Uno. 8-bit Palette images are more difficult because you need a 768-byte palette.
 
-Q0: Does it run on the Arduino Uno?<br>
-A0: Yes! You can both encode and decode images on the Uno. 8-bit Palette images are more difficult because you need a 768-byte palette.<br>
-<br>
-Q1: How does it perform compared to PNG and GIF?<br>
-A1: It's faster than both, but usually underperforms both in terms of compression. SLIC can sometimes compress better than PNG for 24 or 32-bpp images.<br>
-<br>
-Q2: What type of images does SLIC compress well?<br>
-A2: SLIC does well with smooth gradients and areas of common colors.<br>
-<br>
-Q3: What type of images does SLIC compress poorly?<br>
-A3: Images with shot noise or lots of unique colors (e.g. photos of people/places) don't compress well.<br>
-<br>
-Q4: What's the easiest way to start using SLIC images in my project?<br>
-A4: Peruse the Wiki for info about the API, create some ".slc" files with the command line tool in the linux directory and start your code from one of the examples.<br>
-<br>
-Q5: How can I easily create SLIC-compressed images from existing image files?<br>
-A5: The command line tool in the linux directory should build correctly on MacOS+Windows as well. Use it to convert Windows BMP files into .slc files.<br>
-Q6: How can I include SLIC const data in my code?<br>
-A6: Use my image_to_c tool (https://github.com/bitbank2/image_to_c) to create C arrays of binary data to compile into your code.<br>
+Q1: How does it perform compared to PNG and GIF?
+A1: It's faster than both, but usually underperforms both in terms of compression. SLIC can sometimes compress better than PNG for 24 or 32-bpp images.
+
+Q2: What type of images does SLIC compress well?
+A2: SLIC does well with smooth gradients and areas of common colors.
+
+Q3: What type of images does SLIC compress poorly?
+A3: Images with shot noise or lots of unique colors (e.g. photos of people/places) don't compress well.
+
+Q4: What's the easiest way to start using SLIC images in my project?
+A4: Peruse the Wiki for info about the API, create some ".slc" files with the command line tool in the linux directory and start your code from one of the examples.
+
+Q5: How can I easily create SLIC-compressed images from existing image files?
+A5: The command line tool in the linux directory should build correctly on MacOS+Windows as well. Use it to convert Windows BMP files into .slc files.
+
+Q6: How can I include SLIC const data in my code?
+A6: Use my image_to_c tool (https://github.com/bitbank2/image_to_c) to create C arrays of binary data to compile into your code.
