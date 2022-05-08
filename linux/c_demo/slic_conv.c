@@ -69,30 +69,34 @@ int iHeaderSize;
    l = (uint32_t *)&pHdr[18];
    *l = (uint32_t)cx;      /* width */
    *(l+1) = (uint32_t)cy;  /* height */
+    if (bpp >= 24) { // non-palette write
+        l = (uint32_t *)&pHdr[10]; // offset to image bits is less (no palette)
+        *l = iHeaderSize;
+    }
    fwrite(pHdr, 1, iHeaderSize, oHandle);
     if (bpp <= 8) {
-    if (pPalette == NULL) {// create a grayscale palette
-        int iDelta, iCount = 1<<bpp;
-        int iGray = 0;
-        iDelta = 255/(iCount-1);
-        for (i=0; i<iCount; i++) {
-            ucTemp[i*4+0] = (uint8_t)iGray;
-            ucTemp[i*4+1] = (uint8_t)iGray;
-            ucTemp[i*4+2] = (uint8_t)iGray;
-            ucTemp[i*4+3] = 0;
-            iGray += iDelta;
+        if (pPalette == NULL) {// create a grayscale palette
+            int iDelta, iCount = 1<<bpp;
+            int iGray = 0;
+            iDelta = 255/(iCount-1);
+            for (i=0; i<iCount; i++) {
+                ucTemp[i*4+0] = (uint8_t)iGray;
+                ucTemp[i*4+1] = (uint8_t)iGray;
+                ucTemp[i*4+2] = (uint8_t)iGray;
+                ucTemp[i*4+3] = 0;
+                iGray += iDelta;
+            }
+        } else {
+            for (i=0; i<256; i++) // change palette to WinBMP format
+            {
+                ucTemp[i*4 + 0] = pPalette[(i*3)+2];
+                ucTemp[i*4 + 1] = pPalette[(i*3)+1];
+                ucTemp[i*4 + 2] = pPalette[(i*3)+0];
+                ucTemp[i*4 + 3] = 0;
+            }
         }
-    } else {
-        for (i=0; i<256; i++) // change palette to WinBMP format
-        {
-            ucTemp[i*4 + 0] = pPalette[(i*3)+2];
-            ucTemp[i*4 + 1] = pPalette[(i*3)+1];
-            ucTemp[i*4 + 2] = pPalette[(i*3)+0];
-            ucTemp[i*4 + 3] = 0;
-        }
+        fwrite(ucTemp, 1, 1024, oHandle);
     }
-    fwrite(ucTemp, 1, 1024, oHandle);
-    } // palette write
    /* Write the image data */
    for (i=cy-1; i>=0; i--)
     {
@@ -226,6 +230,11 @@ uint8_t *pData;
 
 int slic_read_fake(SLICFILE *pFile, uint8_t *pBuf, int iLen)
 {
+    if (pFile->iPos + iLen > pFile->iSize) {
+        iLen = pFile->iSize - pFile->iPos;
+        if (iLen <= 0)
+            return 0; // past the end of file
+    }
     memcpy(pBuf, &pFile->pData[pFile->iPos], iLen);
     pFile->iPos += iLen;
     return iLen;
@@ -252,24 +261,29 @@ int main(int argc, const char * argv[]) {
     if (argc == 3) {
        iOutIndex = 2; // argv index of output filename
        i = (int)strlen(argv[1]);
-       if (memcmp(&argv[1][i-4], ".slc", 4) == 0)  { // input is QOI file
+       if (memcmp(&argv[1][i-4], ".slc", 4) == 0)  { // input is SLIC file
            pData = ReadFile((char *)argv[1], &iDataSize);
-           rc = slic_init_decode(NULL, &state, pData, iDataSize, ucPalette, NULL, slic_read_fake);
-           printf("decompressing a slic %d x %d x %d-bpp file\n", state.width, state.height, state.bpp);
-           pBitmap = (uint8_t *)malloc(state.width * state.height * (state.bpp >> 3) + 8);
-           // do it in small runs for testing Arduino code
-           for (int y=0; y<state.height; y++) {
-               rc = slic_decode(&state, &pBitmap[y * state.width * (state.bpp >> 3)], state.width);
-           } // for y
-            if (rc == SLIC_SUCCESS || rc == SLIC_DONE) {
-              printf("success!\n");
-              WriteBMP((char *)argv[2], pBitmap, ucPalette, state.width, state.height, state.bpp);
-              free(pBitmap);
-                free(pData);
+           if (pData != NULL) {
+               rc = slic_init_decode(NULL, &state, pData, iDataSize, ucPalette, NULL, slic_read_fake);
+               printf("decompressing a slic %d x %d x %d-bpp file\n", state.width, state.height, state.bpp);
+               pBitmap = (uint8_t *)malloc(state.width * state.height * (state.bpp >> 3) + 8);
+               // do it in small runs for testing Arduino code
+               for (int y=0; y<state.height; y++) {
+                   rc = slic_decode(&state, &pBitmap[y * state.width * (state.bpp >> 3)], state.width);
+               } // for y
+                if (rc == SLIC_SUCCESS || rc == SLIC_DONE) {
+                    printf("success!\n");
+                    WriteBMP((char *)argv[2], pBitmap, ucPalette, state.width, state.height, state.bpp);
+                    free(pBitmap);
+                    free(pData);
             } else {
                 printf("slic_decode() returned %d\n", rc);
             }
           return 0;
+           } else {
+               printf("Error opening file %s\n", argv[1]);
+               return -1;
+           }
        }
        pBitmap = ReadBMP(argv[1], &iWidth, &iHeight, &iBpp, ucPalette);
        if (pBitmap == NULL)

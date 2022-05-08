@@ -767,7 +767,7 @@ int slic_decode(SLICSTATE *pState, uint8_t *pOut, int iOutSize) {
             d += iBpp;
             continue;
         }
-        if (s < pSrcEnd) {
+        if (s >= pSrcEnd) {
             // Either we're at the end of the file or we need to read more data
             if (get_more_data(pState))
                 return SLIC_DECODE_ERROR; // we're trying to go past the end, error
