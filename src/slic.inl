@@ -39,7 +39,7 @@ int slic_init_encode(const char *filename, SLICSTATE *pState, uint16_t iWidth, u
     slic_header hdr;
     int rc;
     
-    if (pState == NULL || iWidth < 1 || iHeight < 1 || (iBpp != 8 && iBpp != 16 && iBpp != 24 && iBpp != 24)) {
+    if (pState == NULL || iWidth < 1 || iHeight < 1 || (iBpp != 8 && iBpp != 16 && iBpp != 24 && iBpp != 32)) {
         return SLIC_INVALID_PARAM;
     }
     if (pfnOpen || pfnWrite || filename) {
